@@ -50,6 +50,7 @@ Additional implementations and visualisations are provided outside QMK in the
     - [[#60_ansi][60_ansi]]
     - [[#ergodox][ergodox]]
     - [[#ortho_4x12][ortho_4x12]]
+    - [[#ortho_5x15][ortho_5x15]]
     - [[#planck_mit][planck_mit]]
     - [[#split_3x5_3][split_3x5_3]]
     - [[#split_3x6_3][split_3x6_3]]
@@ -935,6 +936,54 @@ KC_NO, KC_NO, K32,   K33,   K34,   KC_NO, KC_NO, K35,   K36,   K37,   KC_NO, KC_
 Required by the build system.
 
 #+BEGIN_SRC C :noweb yes :padline no :tangle ../../layouts/community/ortho_4x12/manna-harbour_miryoku/keymap.c
+// <<header>>
+#+END_SRC
+
+
+*** ortho_5x15
+
+For the ortho_5x15 layout there's a bit more space in the middle, the thumb keys are shifted one postion towards
+the middle for a more comfortable position.
+
+To build for any keyboard using this layout (5x15, idobo, punk75, xd75):
+
+#+BEGIN_SRC sh :tangle no
+make idobo:manna-harbour_miryoku:flash # idobo
+#+END_SRC
+
+
+**** [[../../layouts/community/ortho_5x15/manna-harbour_miryoku/config.h][layouts/community/ortho_5x15/manna-harbour_miryoku/config.h]]
+
+Contains subset mapping.
+
+#+BEGIN_SRC C :noweb yes :padline no :tangle ../../layouts/community/ortho_5x15/manna-harbour_miryoku/config.h
+// <<header>>
+
+#pragma once
+
+#define LAYOUT_miryoku(\
+K00,   K01,   K02,   K03,   K04,                 K05,   K06,   K07,   K08,   K09,\
+K10,   K11,   K12,   K13,   K14,                 K15,   K16,   K17,   K18,   K19,\
+K20,   K21,   K22,   K23,   K24,                 K25,   K26,   K27,   K28,   K29,\
+N30,   N31,   K32,   K33,   K34,                 K35,   K36,   K37,   N38,   N39\
+)\
+LAYOUT_ortho_5x15(\
+KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+K00,   K01,   K02,   K03,   K04,   KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, K05,   K06,   K07,   K08,   K09,\
+K10,   K11,   K12,   K13,   K14,   KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, K15,   K16,   K17,   K18,   K19,\
+K20,   K21,   K22,   K23,   K24,   KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, K25,   K26,   K27,   K28,   K29,\
+KC_NO, KC_NO, KC_NO, K32,   K33,   K34,   KC_NO, KC_NO, KC_NO, K35,   K36,   K37,   KC_NO, KC_NO, KC_NO\
+)
+#+END_SRC
+
+#+RESULTS:
+
+
+**** [[../../layouts/community/ortho_5x15/manna-harbour_miryoku/keymap.c][layouts/community/ortho_5x15/manna-harbour_miryoku/keymap.c]]
+
+Required by the build system.
+
+#+BEGIN_SRC C :noweb yes :padline no :tangle ../../layouts/community/ortho_5x15/manna-harbour_miryoku/keymap.c
 // <<header>>
 #+END_SRC
 
