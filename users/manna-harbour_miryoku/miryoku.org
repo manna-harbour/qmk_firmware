@@ -656,8 +656,8 @@ for tap_row, hold_row in zip(alphas_table + thumbs_table, hold_table):
     elif hold != '' and hold != 'U_NP' and hold != 'RESET':
       code = 'LT(' + str(hold) + ', ' + code + ')'
     results += (code + ', ').ljust(width)
-  results = results.rstrip(' ') + '\n'
-results = results.rstrip('\n, ')
+  results = results.rstrip(' ') + ' \\\n'
+results = results.rstrip('\\\n, ')
 return results
 #+END_SRC
 
@@ -750,8 +750,8 @@ for row in table:
     if not str(code).startswith(nonkc_tuple):
       code = 'KC_' + str(code)
     results += (code + ', ').ljust(width)
-  results = results.rstrip(' ') + '\n'
-results = results.rstrip('\n, ')
+  results = results.rstrip(' ') + ' \\\n'
+results = results.rstrip('\\\n, ')
 return results
 #+END_SRC
 
@@ -767,9 +767,9 @@ return results
 Produce layer enums from layer names in hold table.
 
 #+NAME: table-enums
-#+BEGIN_SRC python :var hold_table=hold :var mods_table=mods :tangle no
+#+BEGIN_SRC python :var hold_table=hold :var mods_table=mods :var extra_layers="" :tangle no
 mods_dict = dict.fromkeys(mods_table[0])
-results = 'enum layers { BASE, MBO, '
+results = 'enum layers { BASE, ' + ( extra_layers + ', MBO, ' if extra_layers else 'MBO, ' )
 for hold_row in hold_table:
   for hold in hold_row:
     if hold not in mods_dict and hold != '' and hold != 'U_NP' and hold != 'RESET':
@@ -941,6 +941,10 @@ endif
 ifneq ($(strip $(MIRYOKU_MAPPING)),)
   OPT_DEFS += -DMIRYOKU_MAPPING_$(MIRYOKU_MAPPING)
 endif
+
+ifneq ($(strip $(MIRYOKU_EXTRA_LAYERS)),)
+  OPT_DEFS += -DMIRYOKU_EXTRA_LAYERS=$(MIRYOKU_EXTRA_LAYERS)
+endif
 #+END_SRC
 
 
@@ -1001,7 +1005,11 @@ included from keymap or layout ~keymap.c~ if needed.
 #define U_NA KC_NO // present but not available for use
 #define U_NU KC_NO // available but not used
 
+#if defined MIRYOKU_EXTRA_LAYERS
+<<table-enums(extra_layers="MIRYOKU_EXTRA_LAYERS")>>
+#else
 <<table-enums()>>
+#endif
 
 #if defined MIRYOKU_CLIPBOARD_FUN
 <<table-keycode-mappings(table=clipboard-fun)>>
@@ -1013,6 +1021,35 @@ included from keymap or layout ~keymap.c~ if needed.
 <<table-keycode-mappings(table=clipboard)>>
 #endif
 
+#define MIRYOKU_TABLE_COLEMAK \
+  <<table-layout-taphold(alphas_table=colemak)>>
+#define MIRYOKU_TABLE_COLEMAKDHK \
+  <<table-layout-taphold(alphas_table=colemakdhk)>>
+#define MIRYOKU_TABLE_DVORAK \
+  <<table-layout-taphold(alphas_table=dvorak)>>
+#define MIRYOKU_TABLE_HALMAK \
+  <<table-layout-taphold(alphas_table=halmak)>>
+#define MIRYOKU_TABLE_WORKMAN \
+  <<table-layout-taphold(alphas_table=workman)>>
+#define MIRYOKU_TABLE_QWERTY \
+  <<table-layout-taphold(alphas_table=qwerty)>>
+#define MIRYOKU_TABLE_COLEMAKDH \
+  <<table-layout-taphold(alphas_table=colemakdh)>>
+
+#define MIRYOKU_TABLE_COLEMAK_FLIP \
+  <<table-layout-taphold(alphas_table=colemak, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
+#define MIRYOKU_TABLE_COLEMAKDHK_FLIP \
+  <<table-layout-taphold(alphas_table=colemakdhk, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
+#define MIRYOKU_TABLE_DVORAK_FLIP \
+  <<table-layout-taphold(alphas_table=dvorak, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
+#define MIRYOKU_TABLE_HALMAK_FLIP \
+  <<table-layout-taphold(alphas_table=halmak, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
+#define MIRYOKU_TABLE_WORKMAN_FLIP \
+  <<table-layout-taphold(alphas_table=workman, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
+#define MIRYOKU_TABLE_QWERTY_FLIP \
+  <<table-layout-taphold(alphas_table=qwerty, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
+#define MIRYOKU_TABLE_COLEMAKDH_FLIP \
+  <<table-layout-taphold(alphas_table=colemakdh, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
 
 #+END_SRC
 
@@ -1026,25 +1063,66 @@ Contains the keymap.  Added from ~rules.mk~.
 
 #include "manna-harbour_miryoku.h"
 
+#define m_layout_expand(...) LAYOUT_miryoku(__VA_ARGS__)
+#define m_layout(x) [x] = m_layout_expand(MIRYOKU_TABLE_ ## x)
+
+#define m_layouts_8(a,b,c,d,e,f,g,h) m_layout(a), m_layout(b), m_layout(c), m_layout(d), m_layout(e), m_layout(f), m_layout(g), m_layout(h)
+#define m_layouts_7(a,b,c,d,e,f,g)   m_layout(a), m_layout(b), m_layout(c), m_layout(d), m_layout(e), m_layout(f), m_layout(g)
+#define m_layouts_6(a,b,c,d,e,f)     m_layout(a), m_layout(b), m_layout(c), m_layout(d), m_layout(e), m_layout(f)
+#define m_layouts_5(a,b,c,d,e)       m_layout(a), m_layout(b), m_layout(c), m_layout(d), m_layout(e)
+#define m_layouts_4(a,b,c,d)         m_layout(a), m_layout(b), m_layout(c), m_layout(d)
+#define m_layouts_3(a,b,c)           m_layout(a), m_layout(b), m_layout(c)
+#define m_layouts_2(a,b)             m_layout(a), m_layout(b)
+#define m_layouts_1(a)               m_layout(a)
+
+#define GET_MACRO(_1,_2,_3,_4,_5,_6,_7,_8,NAME,...) m_layouts_ ## NAME
+
+#define m_layouts_multi(...) GET_MACRO(__VA_ARGS__, 8, 7, 6, 5, 4, 3, 2, 1)(__VA_ARGS__)
+#define m_layouts(z) m_layouts_multi(z)
+
+// These mean that it's impossible to add the BASE layer as a duplicate extra layer
+// But the advantage is that the base layer is always called 'BASE'
+#if defined MIRYOKU_LAYERS_FLIP
+  #if defined MIRYOKU_ALPHAS_COLEMAK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_COLEMAK_FLIP
+  #elif defined MIRYOKU_ALPHAS_COLEMAKDHK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_COLEMAKDHK_FLIP
+  #elif defined MIRYOKU_ALPHAS_DVORAK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_DVORAK_FLIP
+  #elif defined MIRYOKU_ALPHAS_HALMAK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_HALMAK_FLIP
+  #elif defined MIRYOKU_ALPHAS_WORKMAN
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_WORKMAN_FLIP
+  #elif defined MIRYOKU_ALPHAS_QWERTY
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_QWERTY_FLIP
+  #else
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_COLEMAKDH_FLIP
+  #endif
+#else
+  #if defined MIRYOKU_ALPHAS_COLEMAK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_COLEMAK
+  #elif defined MIRYOKU_ALPHAS_COLEMAKDHK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_COLEMAKDHK
+  #elif defined MIRYOKU_ALPHAS_DVORAK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_DVORAK
+  #elif defined MIRYOKU_ALPHAS_HALMAK
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_HALMAK
+  #elif defined MIRYOKU_ALPHAS_WORKMAN
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_WORKMAN
+  #elif defined MIRYOKU_ALPHAS_QWERTY
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_QWERTY
+  #else
+  #define MIRYOKU_TABLE_BASE MIRYOKU_TABLE_COLEMAKDH
+  #endif
+#endif
+
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #if defined MIRYOKU_LAYERS_FLIP
-  [BASE] = LAYOUT_miryoku(
-  #if defined MIRYOKU_ALPHAS_COLEMAK
-<<table-layout-taphold(alphas_table=colemak, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
-  #elif defined MIRYOKU_ALPHAS_COLEMAKDHK
-<<table-layout-taphold(alphas_table=colemakdhk, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
-  #elif defined MIRYOKU_ALPHAS_DVORAK
-<<table-layout-taphold(alphas_table=dvorak, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
-  #elif defined MIRYOKU_ALPHAS_HALMAK
-<<table-layout-taphold(alphas_table=halmak, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
-  #elif defined MIRYOKU_ALPHAS_WORKMAN
-<<table-layout-taphold(alphas_table=workman, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
-  #elif defined MIRYOKU_ALPHAS_QWERTY
-<<table-layout-taphold(alphas_table=qwerty, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
-  #else
-<<table-layout-taphold(alphas_table=colemakdh, thumbs_table=thumbs-flip, hold_table=hold-flip)>>
+  m_layout(BASE),
+  #if defined MIRYOKU_EXTRA_LAYERS
+  m_layouts(MIRYOKU_EXTRA_LAYERS),
   #endif
-  ),
   #if defined MIRYOKU_NAV_INVERTEDT
   [NAV] = LAYOUT_miryoku(
 <<table-layout-half(half_table=nav-l-invertedt, mode="l", hold_table=hold-flip)>>
@@ -1080,23 +1158,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   )
 ,
 #else
-  [BASE] = LAYOUT_miryoku(
-  #if defined MIRYOKU_ALPHAS_COLEMAK
-<<table-layout-taphold(alphas_table=colemak)>>
-  #elif defined MIRYOKU_ALPHAS_COLEMAKDHK
-<<table-layout-taphold(alphas_table=colemakdhk)>>
-  #elif defined MIRYOKU_ALPHAS_DVORAK
-<<table-layout-taphold(alphas_table=dvorak)>>
-  #elif defined MIRYOKU_ALPHAS_HALMAK
-<<table-layout-taphold(alphas_table=halmak)>>
-  #elif defined MIRYOKU_ALPHAS_WORKMAN
-<<table-layout-taphold(alphas_table=workman)>>
-  #elif defined MIRYOKU_ALPHAS_QWERTY
-<<table-layout-taphold(alphas_table=qwerty)>>
-  #else
-<<table-layout-taphold(alphas_table=colemakdh)>>
+  m_layout(BASE),
+  #if defined MIRYOKU_EXTRA_LAYERS
+  m_layouts(MIRYOKU_EXTRA_LAYERS),
   #endif
-  ),
   #if defined MIRYOKU_NAV_VI
   [NAV] = LAYOUT_miryoku(
 <<table-layout-half(half_table=nav-r-vi, mode="r")>>
